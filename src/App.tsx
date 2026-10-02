@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Drill, Player, WeeklyChallenge, TrainingLog, WearableTelemetry } from './types/futsal';
+import { Drill, Player, WeeklyChallenge, TrainingLog, WearableTelemetry, SubscriptionAccount } from './types/futsal';
 import { DRILLS_DATABASE } from './data/drillsData';
 import { INITIAL_PLAYERS, INITIAL_CHALLENGES } from './data/skillsEvaluationData';
 import { wearableService } from './services/wearableService';
@@ -27,13 +27,28 @@ import {
   ChevronRight,
   Flame,
   CheckCircle2,
-  Crown
+  Crown,
+  Lock,
+  ExternalLink
 } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_PLAYERS = 'futsal_players_v1';
 const LOCAL_STORAGE_KEY_CHALLENGES = 'futsal_challenges_v1';
 const LOCAL_STORAGE_KEY_LOGS = 'futsal_logs_v1';
 const LOCAL_STORAGE_KEY_PREMIUM = 'futsal_premium_v1';
+const LOCAL_STORAGE_KEY_SUBSCRIPTION = 'futsal_subscription_account_v2';
+
+const DEFAULT_SUBSCRIPTION: SubscriptionAccount = {
+  status: 'free',
+  plan: 'annual',
+  trialDaysLeft: 7,
+  amountPaid: 0,
+  currency: 'USD',
+  customerEmail: 'abertona@gmail.com',
+  customerName: 'Alberto Bertona',
+  paymentMethod: 'card',
+  gatewayCheckoutUrl: 'https://treinos-de-futsal-infantil.impultienda.ar'
+};
 
 export default function App() {
   // Navigation
@@ -73,13 +88,25 @@ export default function App() {
     }
   });
 
-  const [isPremium, setIsPremium] = useState<boolean>(() => {
+  const [subscription, setSubscription] = useState<SubscriptionAccount>(() => {
     try {
-      return localStorage.getItem(LOCAL_STORAGE_KEY_PREMIUM) === 'true';
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY_SUBSCRIPTION);
+      if (saved) return JSON.parse(saved);
+      const oldPrem = localStorage.getItem(LOCAL_STORAGE_KEY_PREMIUM) === 'true';
+      if (oldPrem) {
+        return {
+          ...DEFAULT_SUBSCRIPTION,
+          status: 'active',
+          amountPaid: 69.90
+        };
+      }
+      return DEFAULT_SUBSCRIPTION;
     } catch {
-      return false;
+      return DEFAULT_SUBSCRIPTION;
     }
   });
+
+  const isSubscribed = subscription.status === 'active' || subscription.status === 'trial';
 
   // Modal triggers
   const [activeDrillModal, setActiveDrillModal] = useState<Drill | null>(null);
@@ -132,6 +159,19 @@ export default function App() {
       console.warn(e);
     }
   }, [trainingLogs]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY_SUBSCRIPTION, JSON.stringify(subscription));
+      localStorage.setItem(LOCAL_STORAGE_KEY_PREMIUM, isSubscribed ? 'true' : 'false');
+    } catch (e) {
+      console.warn(e);
+    }
+  }, [subscription, isSubscribed]);
+
+  const handleUpdateSubscription = (updated: SubscriptionAccount) => {
+    setSubscription(updated);
+  };
 
   // Player handlers
   const handleUpdatePlayer = (updated: Player) => {
@@ -410,20 +450,27 @@ export default function App() {
             <button
               onClick={() => setIsSubscriptionModalOpen(true)}
               className={`px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 ${
-                isPremium
+                subscription.status === 'active'
                   ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
+                  : subscription.status === 'trial'
+                  ? 'bg-sky-400 text-slate-950 hover:bg-sky-300'
                   : 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 hover:from-amber-300 hover:to-amber-400 shadow-amber-500/10'
               }`}
             >
-              {isPremium ? (
+              {subscription.status === 'active' ? (
                 <>
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <Crown className="w-3.5 h-3.5" />
                   <span>Família Pro</span>
+                </>
+              ) : subscription.status === 'trial' ? (
+                <>
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Trial 7 Dias</span>
                 </>
               ) : (
                 <>
-                  <Crown className="w-3.5 h-3.5" />
-                  <span>Assinar Pro</span>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Assinar Pro ($9.90)</span>
                 </>
               )}
             </button>
@@ -462,6 +509,32 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            {/* Free Mode Monetization Alert */}
+            {!isSubscribed && (
+              <div className="p-4 bg-gradient-to-r from-amber-500/15 via-slate-900 to-slate-950 border border-amber-400/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0 text-base shadow">
+                    ⭐
+                  </div>
+                  <div>
+                    <div className="font-bold text-white flex items-center gap-2">
+                      <span>Modo Demonstração Gratuito</span>
+                      <span className="text-[10px] text-amber-300 font-normal">· Fichas de 10 a 13 anos e vestíveis bloqueados</span>
+                    </div>
+                    <p className="text-slate-400 text-[11px] mt-0.5">
+                      Assine o plano <strong className="text-white">Futsal Family Club</strong> para liberar todas as 200 fichas, retos semanais e rastreamento de frequência cardíaca.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsSubscriptionModalOpen(true)}
+                  className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-xs shrink-0 shadow-lg shadow-amber-400/20 transition-all active:scale-95"
+                >
+                  Ver Planos & Assinar ($9.90)
+                </button>
+              </div>
+            )}
 
             {/* Filter Controls (Segmented controls) */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
@@ -576,13 +649,23 @@ export default function App() {
 
                   {/* Action CTA */}
                   <div className="pt-4 mt-4 border-t border-slate-800/80">
-                    <button
-                      onClick={() => setActiveDrillModal(drill)}
-                      className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-98 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow shadow-amber-400/10"
-                    >
-                      <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>Iniciar Treino Interativo</span>
-                    </button>
+                    {!isSubscribed && drill.ageGroup === '10-13' ? (
+                      <button
+                        onClick={() => setIsSubscriptionModalOpen(true)}
+                        className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all border border-amber-400/30 shadow active:scale-98"
+                      >
+                        <Lock className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Desbloquear com Futsal Pro</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setActiveDrillModal(drill)}
+                        className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-98 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow shadow-amber-400/10"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>Iniciar Treino Interativo</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -796,12 +879,8 @@ export default function App() {
 
       {isSubscriptionModalOpen && (
         <SubscriptionModal
-          isPremium={isPremium}
-          onUpgrade={() => {
-            setIsPremium(true);
-            localStorage.setItem(LOCAL_STORAGE_KEY_PREMIUM, 'true');
-            setIsSubscriptionModalOpen(false);
-          }}
+          subscription={subscription}
+          onUpdateSubscription={handleUpdateSubscription}
           onClose={() => setIsSubscriptionModalOpen(false)}
         />
       )}

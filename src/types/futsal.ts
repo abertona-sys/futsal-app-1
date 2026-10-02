@@ -162,3 +162,19 @@ export interface FairPlayCertificate {
   guardianSignature: string;
   playerSignature: string;
 }
+
+export interface SubscriptionAccount {
+  status: 'free' | 'trial' | 'active' | 'canceled';
+  plan: 'monthly' | 'annual';
+  trialDaysLeft: number;
+  trialEndsAt?: string;
+  nextBillingDate?: string;
+  amountPaid: number;
+  currency: string;
+  customerEmail: string;
+  customerName: string;
+  paymentMethod: 'card' | 'impultienda' | 'mercadopago';
+  cardLast4?: string;
+  cardBrand?: string;
+  gatewayCheckoutUrl: string; // The owner's store checkout URL, e.g. impultienda.ar link
+}
