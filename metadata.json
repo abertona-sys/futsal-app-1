@@ -1,0 +1,6 @@
+{
+  "name": "Futsal Play Family - Treinos Interativos",
+  "description": "App interativo para treinos de futsal infantil em família, fichas de jogadores, semáforo de habilidades, rastreamento físico com vestíveis e desafios semanais.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

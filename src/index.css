@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Cabinet Grotesk', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Custom court pitch grid */
+.futsal-court-pattern {
+  background-color: #0b1528;
+  background-image: radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.tactical-pitch {
+  background: radial-gradient(ellipse at center, #0f2b1d 0%, #07170f 100%);
+  border: 2px solid rgba(74, 222, 128, 0.3);
+}
+
+/* Custom pulse animations for wearables */
+@keyframes heart-pulse {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.18); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.12); }
+  70% { transform: scale(1); }
+}
+
+.animate-heart-pulse {
+  animation: heart-pulse 1.1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Hide scrollbar for neat horizontal scroll zones */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
